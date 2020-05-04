@@ -2,6 +2,7 @@
 
 namespace AidynMakhataev\LaravelSurveyJs\app\Models;
 
+use Cocur\Slugify\Slugify;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -25,17 +26,19 @@ class Survey extends Model
         parent::boot();
 
         static::creating(function ($survey) {
-            $survey->slug = str_slug($survey->name);
+            $slugify = new Slugify();
+
+            $survey->slug = $slugify->slugify($survey->name);;
 
             $latestSlug = static::whereRaw("slug = '$survey->slug' or slug LIKE '$survey->slug-%'")
-                                ->latest('id')
-                                ->value('slug');
+                ->latest('id')
+                ->value('slug');
             if ($latestSlug) {
                 $pieces = explode('-', $latestSlug);
 
                 $number = intval(end($pieces));
 
-                $survey->slug .= '-'.($number + 1);
+                $survey->slug .= '-' . ($number + 1);
             }
         });
     }
